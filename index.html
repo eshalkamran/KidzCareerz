@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Career Guidance Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f8ff; /* Light background color */
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      color: #333;
+      margin-top: 20px;
+    }
+    /* Spinning wheel container */
+    .wheel-container {
+      margin: 20px auto;
+      position: relative;
+      width: 300px;
+      height: 300px;
+    }
+    /* The wheel circle */
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 5px solid #888;
+      position: relative;
+      overflow: hidden;
+      transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+    /* Some slices (categories) - for demonstration, let's just color them */
+    .slice {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      background: red;
+      transform-origin: 100% 100%;
+    }
+    .slice1 { background: #fa8072; transform: rotate(0deg) skewY(-30deg); }
+    .slice2 { background: #ffd700; transform: rotate(60deg) skewY(-30deg); }
+    .slice3 { background: #7fff00; transform: rotate(120deg) skewY(-30deg); }
+    .slice4 { background: #1e90ff; transform: rotate(180deg) skewY(-30deg); }
+    .slice5 { background: #da70d6; transform: rotate(240deg) skewY(-30deg); }
+    .slice6 { background: #f4a460; transform: rotate(300deg) skewY(-30deg); }
+
+    /* Indicator (arrow) */
+    .pointer {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid #333;
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* Question & answer area */
+    .question-area {
+      margin: 20px auto;
+      max-width: 600px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #ccc;
+      display: none; /* hidden until we spin the wheel the first time */
+    }
+    .question-text {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
+    .answer-buttons button {
+      font-size: 1.2em;
+      margin: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-yes {
+      background: #4caf50;
+      color: #fff;
+    }
+    .btn-no {
+      background: #f44336;
+      color: #fff;
+    }
+
+    /* Results area */
+    .results-area {
+      margin: 20px auto;
+      max-width: 600px;
+      display: none;
+      text-align: left;
+    }
+    .results-list {
+      list-style: none;
+      padding: 0;
+    }
+    .results-list li {
+      background: #ffffff;
+      margin: 5px 0;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Career Guidance Game</h1>
+
+  <!-- Wheel Container -->
+  <div class="wheel-container" id="wheelContainer">
+    <div class="pointer"></div>
+    <div class="wheel" id="wheel">
+      <div class="slice slice1"></div>
+      <div class="slice slice2"></div>
+      <div class="slice slice3"></div>
+      <div class="slice slice4"></div>
+      <div class="slice slice5"></div>
+      <div class="slice slice6"></div>
+    </div>
+  </div>
+  <button id="spinBtn" style="font-size:1.2em; padding:10px 20px;">Spin the Wheel</button>
+
+  <!-- Question area -->
+  <div class="question-area" id="questionArea">
+    <div class="question-text" id="questionText">Question will appear here</div>
+    <div class="answer-buttons">
+      <button class="btn-yes" id="yesBtn">YES</button>
+      <button class="btn-no" id="noBtn">NO</button>
+    </div>
+  </div>
+
+  <!-- Results area -->
+  <div class="results-area" id="resultsArea">
+    <h2>Your Recommended Careers</h2>
+    <ul class="results-list" id="resultsList"></ul>
+  </div>
+
+  <script>
+    // Occupations database
+    const occupations = [
+      { name: "Engineer", totalScore: 0 },
+      { name: "Doctor", totalScore: 0 },
+      { name: "Police Officer", totalScore: 0 },
+      { name: "Artist", totalScore: 0 },
+      { name: "Chef", totalScore: 0 },
+      { name: "Teacher", totalScore: 0 },
+      { name: "Veterinarian", totalScore: 0 },
+      { name: "Scientist", totalScore: 0 }
+    ];
+
+    // Question data
+    const questions = [
+      {
+        text: "Do you like building Legos?",
+        yesScores: { "Engineer": 9, "Doctor": 4, "Police Officer": 2, "Artist": 6, "Chef": 3, "Teacher": 5, "Veterinarian": 4, "Scientist": 8 },
+        noScores:  { "Engineer": 2, "Doctor": 5, "Police Officer": 5, "Artist": 3, "Chef": 4, "Teacher": 5, "Veterinarian": 6, "Scientist": 3 }
+      },
+      {
+        text: "Do you like solving puzzles?",
+        yesScores: { "Engineer": 8, "Doctor": 5, "Police Officer": 6, "Artist": 3, "Chef": 4, "Teacher": 5, "Veterinarian": 4, "Scientist": 9 },
+        noScores:  { "Engineer": 3, "Doctor": 4, "Police Officer": 3, "Artist": 6, "Chef": 2, "Teacher": 5, "Veterinarian": 4, "Scientist": 2 }
+      },
+      {
+        text: "Do you like painting or drawing?",
+        yesScores: { "Engineer": 4, "Doctor": 3, "Police Officer": 3, "Artist": 10, "Chef": 4, "Teacher": 5, "Veterinarian": 4, "Scientist": 3 },
+        noScores:  { "Engineer": 5, "Doctor": 6, "Police Officer": 5, "Artist": 2, "Chef": 5, "Teacher": 5, "Veterinarian": 5, "Scientist": 6 }
+      },
+      {
+        text: "Do you enjoy cooking or baking?",
+        yesScores: { "Engineer": 3, "Doctor": 4, "Police Officer": 3, "Artist": 5, "Chef": 10, "Teacher": 5, "Veterinarian": 5, "Scientist": 3 },
+        noScores:  { "Engineer": 4, "Doctor": 5, "Police Officer": 6, "Artist": 4, "Chef": 2, "Teacher": 5, "Veterinarian": 4, "Scientist": 5 }
+      },
+      {
+        text: "Do you enjoy helping others feel better?",
+        yesScores: { "Engineer": 3, "Doctor": 10, "Police Officer": 5, "Artist": 4, "Chef": 6, "Teacher": 8, "Veterinarian": 8, "Scientist": 5 },
+        noScores:  { "Engineer": 6, "Doctor": 1, "Police Officer": 4, "Artist": 5, "Chef": 3, "Teacher": 3, "Veterinarian": 2, "Scientist": 4 }
+      },
+      {
+        text: "Do you like taking care of animals?",
+        yesScores: { "Engineer": 3, "Doctor": 4, "Police Officer": 4, "Artist": 3, "Chef": 4, "Teacher": 4, "Veterinarian": 10, "Scientist": 5 },
+        noScores:  { "Engineer": 4, "Doctor": 5, "Police Officer": 5, "Artist": 5, "Chef": 4, "Teacher": 5, "Veterinarian": 1, "Scientist": 3 }
+      }
+    ];
+
+    let currentQuestionIndex = -1;
+    let spinning = false;
+
+    const wheel = document.getElementById("wheel");
+    const spinBtn = document.getElementById("spinBtn");
+    const questionArea = document.getElementById("questionArea");
+    const questionText = document.getElementById("questionText");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const resultsArea = document.getElementById("resultsArea");
+    const resultsList = document.getElementById("resultsList");
+
+    // SPIN THE WHEEL: We'll just do a random rotation each time
+    spinBtn.addEventListener("click", () => {
+      if (spinning) return; // prevent multiple spins
+      spinning = true;
+
+      // Random rotation between 360 and 360 * 5
+      const randomRotation = 360 * 5 + Math.floor(Math.random() * 360);
+      wheel.style.transform = `rotate(${randomRotation}deg)`;
+
+      // After the animation ends (~4s in our CSS), pick a new question
+      setTimeout(() => {
+        spinning = false;
+        showNextQuestion();
+      }, 4000);
+    });
+
+    // Show the next question in the list
+    function showNextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        questionArea.style.display = "block";
+        const q = questions[currentQuestionIndex];
+        questionText.innerText = q.text;
+      } else {
+        // No more questions, show the results
+        questionArea.style.display = "none";
+        showResults();
+      }
+    }
+
+    // Answer handlers
+    yesBtn.addEventListener("click", () => {
+      recordAnswer("yes");
+    });
+    noBtn.addEventListener("click", () => {
+      recordAnswer("no");
+    });
+
+    function recordAnswer(userAnswer) {
+      // Current question
+      const q = questions[currentQuestionIndex];
+      if (!q) return;
+
+      // Update scores
+      if (userAnswer === "yes") {
+        for (let occ of occupations) {
+          occ.totalScore += q.yesScores[occ.name] || 0;
+        }
+      } else {
+        for (let occ of occupations) {
+          occ.totalScore += q.noScores[occ.name] || 0;
+        }
+      }
+
+      // Show next question
+      showNextQuestion();
+    }
+
+    // Show results sorted in descending order
+    function showResults() {
+      // Sort by totalScore descending
+      occupations.sort((a, b) => b.totalScore - a.totalScore);
+
+      // Display
+      resultsArea.style.display = "block";
+      resultsList.innerHTML = ""; // clear
+      occupations.forEach((occ) => {
+        const li = document.createElement("li");
+        li.innerText = `${occ.name}: ${occ.totalScore} points`;
+        resultsList.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
+

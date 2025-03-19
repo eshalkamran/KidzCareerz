@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Word Scramble - KidzCareerz</title>
+  <!-- Use Fredoka One to match your site’s font -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Fredoka One", cursive;
+    }
+
+    body {
+      background-color: #fef9e7; /* Pastel background */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    h1 {
+      color: #ff6699;
+      font-size: 2.5em;
+      margin: 20px 0;
+    }
+
+    .game-container {
+      max-width: 700px;
+      width: 100%;
+      background-color: #fff;
+      margin-top: 10px;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .scramble-instructions {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    /* Container for the list of scrambled words */
+    .scramble-item {
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .scramble-item p {
+      font-size: 1.5em;
+      margin-right: 15px;
+      color: #333;
+    }
+    .scramble-item input {
+      font-size: 1.1em;
+      padding: 5px 10px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      text-align: center;
+      width: 180px;
+      outline: none;
+    }
+
+    /* Check button */
+    #checkBtn {
+      font-size: 1.2em;
+      background-color: #ffda79; /* pale yellow */
+      color: #333;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 30px;
+      transition: transform 0.3s, background-color 0.3s;
+    }
+    #checkBtn:hover {
+      transform: scale(1.05);
+      background-color: #ffe8a1; 
+    }
+
+    /* Results area */
+    #resultsContainer {
+      display: none; /* hidden until we check answers */
+      margin-top: 30px;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #scoreMessage {
+      font-size: 1.5em;
+      color: #ff6699;
+      margin-bottom: 20px;
+    }
+
+    /* List of top 3 careers */
+    #topCareers {
+      list-style: none;
+      padding: 0;
+      color: #333;
+    }
+    #topCareers li {
+      background-color: #fff8dc;
+      border: 2px solid #ffd700;
+      border-radius: 8px;
+      margin: 10px auto;
+      padding: 10px;
+      max-width: 350px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    /* Show correct unscrambles (optional) */
+    #correctAnswers {
+      margin-top: 10px;
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    /* 'Play Again' button */
+    #playAgainBtn {
+      font-size: 1em;
+      background-color: #8ccfff; /* soft blue */
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: transform 0.3s, background-color 0.3s;
+    }
+    #playAgainBtn:hover {
+      transform: scale(1.05);
+      background-color: #bee3ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Word Scramble</h1>
+  <div class="game-container">
+    <p class="scramble-instructions">
+      Unscramble each career word! Type your guess and press "Check Answers."
+    </p>
+
+    <!-- Where the scrambled words & inputs go -->
+    <div id="scrambleList"></div>
+
+    <button id="checkBtn">Check Answers</button>
+
+    <!-- Results area -->
+    <div id="resultsContainer">
+      <div id="scoreMessage"></div>
+
+      <h3>Your Top Career Matches:</h3>
+      <ul id="topCareers"></ul>
+
+      <!-- Optionally show correct unscrambles -->
+      <div id="correctAnswers"></div>
+
+      <button id="playAgainBtn">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    /************************************************
+     * 1) CAREERS & SCORING
+     * We keep 10 possible careers (same set as other quizzes):
+     ************************************************/
+    const allCareers = [
+      { name: "Engineer", score: 0 },
+      { name: "Doctor", score: 0 },
+      { name: "Artist", score: 0 },
+      { name: "Teacher", score: 0 },
+      { name: "Police Officer", score: 0 },
+      { name: "Chef", score: 0 },
+      { name: "Veterinarian", score: 0 },
+      { name: "Musician", score: 0 },
+      { name: "Athlete", score: 0 },
+      { name: "Astronaut", score: 0 }
+    ];
+
+    /************************************************
+     * 2) WHICH CAREERS TO SCRAMBLE?
+     * For variety, let's pick 5 random from the 10.
+     ************************************************/
+    let chosenCareers = [];
+
+    // We'll store the scrambled text + the actual career name
+    let scrambleData = [];
+
+    // DOM references
+    const scrambleListEl = document.getElementById("scrambleList");
+    const checkBtn = document.getElementById("checkBtn");
+    const resultsContainer = document.getElementById("resultsContainer");
+    const scoreMessageEl = document.getElementById("scoreMessage");
+    const topCareersEl = document.getElementById("topCareers");
+    const correctAnswersEl = document.getElementById("correctAnswers");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+
+    // Initialize game
+    initGame();
+
+    function initGame() {
+      resetScores();
+      resultsContainer.style.display = "none";
+      scrambleListEl.innerHTML = "";
+
+      // 1) Pick 5 random distinct careers from allCareers
+      chosenCareers = getRandomCareers(5);
+
+      // 2) Create scrambleData
+      scrambleData = chosenCareers.map(career => {
+        const scrambled = scrambleWord(career.name);
+        return {
+          original: career.name,
+          scrambled: scrambled
+        };
+      });
+
+      // 3) Display them
+      displayScrambleItems();
+    }
+
+    // Clear all career scores
+    function resetScores() {
+      allCareers.forEach(c => {
+        c.score = 0;
+      });
+    }
+
+    // Helper: choose `count` random unique careers from allCareers
+    function getRandomCareers(count) {
+      // Shuffle a copy of allCareers
+      const careersCopy = [...allCareers];
+      for (let i = careersCopy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [careersCopy[i], careersCopy[j]] = [careersCopy[j], careersCopy[i]];
+      }
+      // Return the first `count` after shuffle
+      return careersCopy.slice(0, count);
+    }
+
+    // Helper: scramble a word (Fisher-Yates shuffle of its letters)
+    function scrambleWord(word) {
+      // remove spaces if any (like "Police Officer"), or handle them carefully:
+      // for a fun challenge, let's remove spaces from the scramble so kids guess 
+      // the combined word. Or keep them—your choice.
+      const letters = word.replace(/\s/g, "").split("");
+
+      for (let i = letters.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [letters[i], letters[j]] = [letters[j], letters[i]];
+      }
+      return letters.join("");
+    }
+
+    // Create HTML elements for each scrambled word
+    function displayScrambleItems() {
+      scrambleData.forEach((dataObj, index) => {
+        const div = document.createElement("div");
+        div.className = "scramble-item";
+        div.innerHTML = `
+          <p>${dataObj.scrambled}</p>
+          <input type="text" id="input-${index}" placeholder="Unscramble" />
+        `;
+        scrambleListEl.appendChild(div);
+      });
+    }
+
+    // When user clicks "Check Answers"
+    checkBtn.addEventListener("click", () => {
+      // 1) For each scrambled item, see if user got it right
+      // 2) If correct, add 10 points to that career’s score
+      let correctCount = 0;
+
+      scrambleData.forEach((obj, index) => {
+        const guessInput = document.getElementById(`input-${index}`);
+        const guess = guessInput.value.trim().toLowerCase();
+        const answer = obj.original.toLowerCase().replace(/\s/g, ""); 
+        // also remove spaces from original if needed
+
+        if (guess === answer) {
+          correctCount++;
+
+          // Find that career in allCareers, add 10 points
+          const careerObj = allCareers.find(c => c.name.toLowerCase().replace(/\s/g, "") === answer);
+          if (careerObj) {
+            careerObj.score += 10;
+          }
+        }
+      });
+
+      // 3) Show results screen
+      showResults(correctCount);
+    });
+
+    function showResults(correctCount) {
+      // Sort careers by score desc
+      allCareers.sort((a, b) => b.score - a.score);
+      const top3 = allCareers.slice(0, 3);
+
+      // Display how many correct they got out of total
+      resultsContainer.style.display = "block";
+      scoreMessageEl.textContent = `You unscrambled ${correctCount} out of ${scrambleData.length} words!`;
+
+      // Show top career matches
+      topCareersEl.innerHTML = "";
+      top3.forEach((career) => {
+        if (career.score > 0) {
+          const li = document.createElement("li");
+          li.textContent = `${career.name} (Score: ${career.score})`;
+          topCareersEl.appendChild(li);
+        }
+      });
+
+      // Optionally show correct unscrambles for each scrambled word
+      let answersHTML = "<h4>Correct Answers:</h4>";
+      scrambleData.forEach(obj => {
+        answersHTML += `
+          <p>
+            ${obj.scrambled} ➔ ${obj.original}
+          </p>
+        `;
+      });
+      correctAnswersEl.innerHTML = answersHTML;
+    }
+
+    // "Play Again" re-initializes the game
+    playAgainBtn.addEventListener("click", () => {
+      initGame();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>This or That? - KidzCareerz Quiz</title>
+  <!-- Use Fredoka One (same font as your home page) -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    /* Base styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #fef9e7; /* same light color as home page */
+      font-family: "Fredoka One", cursive;
+      text-align: center;
+      transition: background-color 0.5s ease;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-bottom: 40px; /* space for bottom area */
+    }
+
+    h1 {
+      margin-top: 20px;
+      color: #ff6699;
+      font-size: 2.5em;
+      transition: color 0.5s ease;
+    }
+
+    /* Container for each question */
+    .question-container {
+      background-color: #ffffff;
+      width: 90%;
+      max-width: 800px;
+      margin-top: 40px;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    .question-container h2 {
+      color: #ff6699;
+      font-size: 1.8em;
+      margin-bottom: 20px;
+    }
+
+    /* Left/Right subject choices container */
+    .choice-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap; /* wrap on smaller screens */
+    }
+
+    .subject-choice {
+      width: 250px;
+      margin: 10px;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 15px;
+      background-color: #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    .subject-choice:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .subject-choice img {
+      width: 80px;
+      height: auto;
+      margin-bottom: 15px;
+    }
+
+    .subject-choice p {
+      font-size: 1.3em;
+      color: #333;
+    }
+
+    /* End Screen */
+    #end-screen {
+      display: none;
+      width: 90%;
+      max-width: 600px;
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    #end-screen h2 {
+      color: #ff6699;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    #results {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    #results li {
+      background-color: #fff8dc;
+      color: #333;
+      border: 2px solid #ffd700;
+      border-radius: 8px;
+      margin: 10px auto;
+      padding: 10px;
+      max-width: 300px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>This or That?</h1>
+
+  <!-- Question Container -->
+  <div class="question-container">
+    <h2 id="questionText">Loading question...</h2>
+    <div class="choice-container" id="choiceContainer">
+      <!-- Left & Right subject blocks go here dynamically -->
+    </div>
+  </div>
+
+  <!-- End Screen (Hidden at first) -->
+  <div id="end-screen">
+    <h2>Your Top 3 Career Matches:</h2>
+    <ul id="results"></ul>
+  </div>
+
+  <script>
+    /*******************************************************
+     * 10 CAREERS (same as other quizzes, so results align)
+     *******************************************************/
+    const careers = [
+      { name: "Engineer", score: 0 },
+      { name: "Doctor", score: 0 },
+      { name: "Artist", score: 0 },
+      { name: "Teacher", score: 0 },
+      { name: "Police Officer", score: 0 },
+      { name: "Chef", score: 0 },
+      { name: "Veterinarian", score: 0 },
+      { name: "Musician", score: 0 },
+      { name: "Athlete", score: 0 },
+      { name: "Astronaut", score: 0 }
+    ];
+
+    /*******************************************************
+     * SUBJECT QUESTIONS
+     * Each question has:
+     * - leftSubject, rightSubject (names)
+     * - leftImg, rightImg (URLs)
+     * - leftScores, rightScores (the points to add)
+     *******************************************************/
+    const questions = [
+      {
+        leftSubject: "Math",
+        rightSubject: "Science",
+        leftImg: "https://cdn-icons-png.flaticon.com/512/2906/2906247.png",   // math icon
+        rightImg: "https://cdn-icons-png.flaticon.com/512/1986/1986383.png", // science icon
+        leftScores: {
+          "Engineer": 8, "Astronaut": 7, "Doctor": 3, "Teacher": 6, "Athlete": 4,
+          "Artist": 2, "Chef": 2, "Musician": 1, "Veterinarian": 3, "Police Officer": 3
+        },
+        rightScores: {
+          "Engineer": 5, "Astronaut": 8, "Doctor": 7, "Teacher": 5, "Athlete": 3,
+          "Artist": 2, "Chef": 2, "Musician": 1, "Veterinarian": 6, "Police Officer": 3
+        }
+      },
+      {
+        leftSubject: "History",
+        rightSubject: "English",
+        leftImg: "https://cdn-icons-png.flaticon.com/512/4672/4672116.png",    // history
+        rightImg: "https://cdn-icons-png.flaticon.com/512/2721/2721275.png",   // english
+        leftScores: {
+          "Teacher": 8, "Artist": 4, "Doctor": 2, "Police Officer": 3, "Engineer": 2,
+          "Musician": 1, "Veterinarian": 2, "Chef": 1, "Athlete": 2, "Astronaut": 3
+        },
+        rightScores: {
+          "Teacher": 8, "Artist": 5, "Doctor": 2, "Police Officer": 3, "Engineer": 2,
+          "Musician": 2, "Veterinarian": 2, "Chef": 2, "Athlete": 2, "Astronaut": 2
+        }
+      },
+      {
+        leftSubject: "PE",
+        rightSubject: "Music",
+        leftImg: "https://cdn-icons-png.flaticon.com/512/3075/3075921.png",    // PE
+        rightImg: "https://cdn-icons-png.flaticon.com/512/1959/1959589.png",   // music
+        leftScores: {
+          "Athlete": 10, "Police Officer": 5, "Astronaut": 4, "Engineer": 2,
+          "Doctor": 3, "Teacher": 3, "Veterinarian": 2, "Chef": 2, "Artist": 2, "Musician": 1
+        },
+        rightScores: {
+          "Musician": 10, "Artist": 6, "Teacher": 4, "Engineer": 2,
+          "Doctor": 2, "Chef": 2, "Astronaut": 3, "Athlete": 3, "Veterinarian": 1, "Police Officer": 2
+        }
+      },
+      {
+        leftSubject: "Art",
+        rightSubject: "Computer Science",
+        leftImg: "https://cdn-icons-png.flaticon.com/512/1055/1055646.png",    // art
+        rightImg: "https://cdn-icons-png.flaticon.com/512/1055/1055671.png",   // computer
+        leftScores: {
+          "Artist": 10, "Musician": 4, "Engineer": 3, "Doctor": 2,
+          "Teacher": 3, "Police Officer": 2, "Chef": 2, "Veterinarian": 2, "Astronaut": 3, "Athlete": 2
+        },
+        rightScores: {
+          "Engineer": 10, "Astronaut": 9, "Teacher": 3, "Police Officer": 2,
+          "Doctor": 2, "Chef": 2, "Veterinarian": 2, "Musician": 3, "Athlete": 2, "Artist": 4
+        }
+      },
+      {
+        leftSubject: "Biology",
+        rightSubject: "Chemistry",
+        leftImg: "https://cdn-icons-png.flaticon.com/512/2721/2721302.png",    // biology
+        rightImg: "https://cdn-icons-png.flaticon.com/512/1650/1650158.png",   // chemistry
+        leftScores: {
+          "Doctor": 8, "Veterinarian": 9, "Engineer": 3, "Astronaut": 4,
+          "Teacher": 4, "Artist": 2, "Police Officer": 2, "Musician": 1, "Chef": 3, "Athlete": 2
+        },
+        rightScores: {
+          "Engineer": 6, "Astronaut": 7, "Doctor": 5, "Teacher": 4,
+          "Veterinarian": 4, "Artist": 2, "Police Officer": 2, "Musician": 1, "Chef": 3, "Athlete": 2
+        }
+      },
+      {
+        leftSubject: "Drama",
+        rightSubject: "Foreign Language",
+        leftImg: "https://cdn-icons-png.flaticon.com/512/3945/3945869.png",    // drama
+        rightImg: "https://cdn-icons-png.flaticon.com/512/2721/2721309.png",   // language
+        leftScores: {
+          "Artist": 5, "Musician": 5, "Teacher": 4, "Chef": 2,
+          "Police Officer": 2, "Astronaut": 2, "Doctor": 2, "Engineer": 2, "Athlete": 2, "Veterinarian": 2
+        },
+        rightScores: {
+          "Teacher": 6, "Artist": 3, "Musician": 3, "Engineer": 2,
+          "Doctor": 2, "Chef": 2, "Astronaut": 2, "Athlete": 2, "Veterinarian": 2, "Police Officer": 2
+        }
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+
+    // Grab DOM references
+    const questionTextEl = document.getElementById("questionText");
+    const choiceContainerEl = document.getElementById("choiceContainer");
+    const endScreenEl = document.getElementById("end-screen");
+    const resultsEl = document.getElementById("results");
+
+    // We'll keep the same pastel background array for random changes
+    const pastelBackgrounds = [
+      "#ffe4e1", // pink
+      "#fff2cc", // pale yellow
+      "#d9f6f0", // very light teal
+      "#fde4cf", // peach
+      "#e7f0c3", // light lime
+      "#fcd5ce", // pastel coral
+      "#cde6f5"  // pastel blue
+    ];
+
+    // Start by showing the first question
+    showQuestion(currentQuestionIndex);
+
+    // showQuestion: populates the text & images for the current question
+    function showQuestion(index) {
+      if (index < questions.length) {
+        const q = questions[index];
+        questionTextEl.textContent = `Which subject do you prefer?`;
+
+        // Clear out the old choices
+        choiceContainerEl.innerHTML = "";
+
+        // Left subject block
+        const leftDiv = document.createElement("div");
+        leftDiv.className = "subject-choice";
+        leftDiv.innerHTML = `
+          <img src="${q.leftImg}" alt="${q.leftSubject}" />
+          <p>${q.leftSubject}</p>
+        `;
+        // On click, add "leftScores"
+        leftDiv.addEventListener("click", () => handleChoice("left"));
+
+        // Right subject block
+        const rightDiv = document.createElement("div");
+        rightDiv.className = "subject-choice";
+        rightDiv.innerHTML = `
+          <img src="${q.rightImg}" alt="${q.rightSubject}" />
+          <p>${q.rightSubject}</p>
+        `;
+        // On click, add "rightScores"
+        rightDiv.addEventListener("click", () => handleChoice("right"));
+
+        // Append to container
+        choiceContainerEl.appendChild(leftDiv);
+        choiceContainerEl.appendChild(rightDiv);
+      } else {
+        // No more questions => show end screen
+        showEndScreen();
+      }
+    }
+
+    // handleChoice: user picks left or right
+    function handleChoice(side) {
+      const currentQ = questions[currentQuestionIndex];
+      if (side === "left") {
+        const scores = currentQ.leftScores;
+        // Add the points to relevant careers
+        updateScores(scores);
+      } else {
+        const scores = currentQ.rightScores;
+        updateScores(scores);
+      }
+
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        randomizeColors();
+        showQuestion(currentQuestionIndex);
+      } else {
+        showEndScreen();
+      }
+    }
+
+    // Update career scores based on the chosen side's mapping
+    function updateScores(scoreMap) {
+      careers.forEach((career) => {
+        if (scoreMap[career.name] !== undefined) {
+          career.score += scoreMap[career.name];
+        }
+      });
+    }
+
+    // randomizeColors: picks a random pastel background
+    function randomizeColors() {
+      const randomColor = pastelBackgrounds[Math.floor(Math.random() * pastelBackgrounds.length)];
+      document.body.style.backgroundColor = randomColor;
+    }
+
+    // Show end screen with top 3 career matches
+    function showEndScreen() {
+      // Hide the question container
+      document.querySelector(".question-container").style.display = "none";
+
+      // Show the end screen
+      endScreenEl.style.display = "block";
+
+      // Sort descending by score
+      careers.sort((a, b) => b.score - a.score);
+      const top3 = careers.slice(0, 3);
+
+      // Display results
+      resultsEl.innerHTML = "";
+      top3.forEach(career => {
+        const li = document.createElement("li");
+        li.textContent = `${career.name} (Score: ${career.score})`;
+        resultsEl.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>

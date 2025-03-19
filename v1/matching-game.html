@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Career Match</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* Base Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "Fredoka One", cursive, sans-serif;
+      background-color: #fef9e7;
+      text-align: center;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    h1 {
+      color: #ff6699;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+    p.intro {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    /* Container for columns */
+    .match-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 20px;
+      position: relative;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      flex: 1;
+      min-width: 250px;
+    }
+
+    /* Bubbles */
+    .bubble {
+      width: 220px;
+      min-height: 100px;
+      border-radius: 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      padding: 15px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s;
+      position: relative;
+      background-color: #ffd1dc; /* default pastel pink */
+    }
+
+    .bubble:hover {
+      transform: scale(1.05);
+    }
+    .bubble img {
+      width: 50px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+    .bubble p {
+      font-size: 1.1em;
+      color: #333;
+      line-height: 1.4;
+    }
+
+    .selected {
+      outline: 4px solid #ffd700;
+      outline-offset: -4px;
+    }
+
+    /* Button */
+    #checkAnswersBtn {
+      margin-top: 30px;
+      font-size: 1.2em;
+      background-color: #8ccfff;
+      color: #fff;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s, background-color 0.3s;
+    }
+    #checkAnswersBtn:hover {
+      transform: scale(1.05);
+      background-color: #a3e0ff;
+    }
+
+    /* Matched Section: where pairs appear after they move */
+    #matchedSection {
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    /* Each pair in matched section */
+    .matched-pair {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 15px;
+      border: 2px dashed #999;
+      border-radius: 10px;
+      position: relative;
+      min-width: 250px;
+      justify-content: space-around;
+    }
+    .matched-pair .mini-bubble {
+      width: 90px;
+      min-height: 60px;
+      border-radius: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9em;
+      background-color: #ffd1dc; /* default color */
+      transition: background-color 0.4s;
+    }
+    .matched-pair .mini-bubble img {
+      width: 30px;
+      margin-bottom: 5px;
+    }
+
+    /* Feedback colors after checking */
+    .correct {
+      background-color: #b2f0b2 !important; /* greenish */
+      border-color: #4CAF50 !important;
+    }
+    .incorrect {
+      background-color: #ffadad !important; /* light red */
+      border-color: #ff5858 !important;
+    }
+
+    /* Absolutely positioned clones for animation */
+    .clone-bubble {
+      position: absolute;
+      transition: transform 0.8s ease, opacity 0.8s ease;
+      z-index: 999; /* so it appears on top during movement */
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Career Match</h1>
+  <p class="intro">Select a bubble on the left and one on the right to move them into the Matched Section!</p>
+
+  <div class="match-container" id="matchContainer">
+    <!-- Column for Descriptions -->
+    <div class="column" id="descriptionsCol"></div>
+    <!-- Column for Professions -->
+    <div class="column" id="professionsCol"></div>
+  </div>
+
+  <button id="checkAnswersBtn">Check Answers</button>
+
+  <!-- Section for matched pairs -->
+  <div id="matchedSection"></div>
+
+  <script>
+    /****************************************************
+     * 1) DATA SETUP
+     ****************************************************/
+    const pairs = [
+      {
+        id: 1,
+        description: "Cooks delicious meals",
+        profession: "Chef",
+        icon: "https://cdn-icons-png.flaticon.com/512/1471/1471262.png"
+      },
+      {
+        id: 2,
+        description: "Helps people when they are sick",
+        profession: "Doctor",
+        icon: "https://cdn-icons-png.flaticon.com/512/3343/3343270.png"
+      },
+      {
+        id: 3,
+        description: "Teaches students in a classroom",
+        profession: "Teacher",
+        icon: "https://cdn-icons-png.flaticon.com/512/2150/2150423.png"
+      },
+      {
+        id: 4,
+        description: "Fights crime and keeps people safe",
+        profession: "Police Officer",
+        icon: "https://cdn-icons-png.flaticon.com/512/2440/2440313.png"
+      },
+      {
+        id: 5,
+        description: "Uses paint or clay to create art",
+        profession: "Artist",
+        icon: "https://cdn-icons-png.flaticon.com/512/3132/3132089.png"
+      }
+    ];
+
+    // We'll store matched results in an array to evaluate at the end
+    // e.g. matchedPairs = [{ leftId: 2, rightId: 1 }, ...]
+    let matchedPairs = [];
+
+    // For selecting bubbles
+    let selectedLeft = null;
+    let selectedRight = null;
+
+    const descriptionsCol = document.getElementById("descriptionsCol");
+    const professionsCol = document.getElementById("professionsCol");
+    const matchContainer = document.getElementById("matchContainer");
+    const matchedSection = document.getElementById("matchedSection");
+    const checkAnswersBtn = document.getElementById("checkAnswersBtn");
+
+    // Shuffle the arrays for random positioning
+    const leftBubbles = shuffle([...pairs]);
+    const rightBubbles = shuffle([...pairs]);
+
+    /****************************************************
+     * 2) RENDER BUBBLES
+     ****************************************************/
+    leftBubbles.forEach(item => {
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.dataset.id = item.id;
+      bubble.innerHTML = `<p>${item.description}</p>`;
+      bubble.addEventListener("click", () => handleLeftClick(bubble));
+      descriptionsCol.appendChild(bubble);
+    });
+
+    rightBubbles.forEach(item => {
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.dataset.id = item.id;
+      bubble.innerHTML = `
+        <img src="${item.icon}" alt="${item.profession}">
+        <p>${item.profession}</p>
+      `;
+      bubble.addEventListener("click", () => handleRightClick(bubble));
+      professionsCol.appendChild(bubble);
+    });
+
+    /****************************************************
+     * 3) CLICK HANDLERS
+     ****************************************************/
+    function handleLeftClick(bubble) {
+      // If bubble is already selected, deselect
+      if (bubble.classList.contains("selected")) {
+        bubble.classList.remove("selected");
+        selectedLeft = null;
+        return;
+      }
+      // Deselect any previously selected left bubble
+      const allLeft = descriptionsCol.querySelectorAll(".bubble");
+      allLeft.forEach(b => b.classList.remove("selected"));
+
+      bubble.classList.add("selected");
+      selectedLeft = bubble;
+
+      if (selectedRight) {
+        moveToMatchedSection(selectedLeft, selectedRight);
+      }
+    }
+
+    function handleRightClick(bubble) {
+      if (bubble.classList.contains("selected")) {
+        bubble.classList.remove("selected");
+        selectedRight = null;
+        return;
+      }
+      // Deselect any previously selected right bubble
+      const allRight = professionsCol.querySelectorAll(".bubble");
+      allRight.forEach(b => b.classList.remove("selected"));
+
+      bubble.classList.add("selected");
+      selectedRight = bubble;
+
+      if (selectedLeft) {
+        moveToMatchedSection(selectedLeft, selectedRight);
+      }
+    }
+
+    /****************************************************
+     * 4) MOVE BUBBLES TO MATCHED SECTION
+     ****************************************************/
+    function moveToMatchedSection(bLeft, bRight) {
+      // We'll create “clone” elements for the animation
+      const cloneLeft = createCloneBubble(bLeft);
+      const cloneRight = createCloneBubble(bRight);
+
+      // Get final positions (in matched section)
+      // We'll just place them side-by-side in a new container .matched-pair
+      // The actual fade/slide animation is done by:
+      //  1) absolutely positioning the clones
+      //  2) then we set transform to matched spot
+
+      // record the matched IDs
+      matchedPairs.push({
+        leftId: bLeft.dataset.id,
+        rightId: bRight.dataset.id
+      });
+
+      // remove from original columns
+      bLeft.remove();
+      bRight.remove();
+      selectedLeft = null;
+      selectedRight = null;
+
+      // Actually place them in the matched section as final elements
+      // But let's wait until the animation finishes, then create the final DOM
+      animateToMatched(cloneLeft, cloneRight);
+    }
+
+    // Creates an absolutely-positioned clone of the bubble for animation
+    function createCloneBubble(original) {
+      const rect = original.getBoundingClientRect();
+      const containerRect = matchContainer.getBoundingClientRect();
+
+      const clone = original.cloneNode(true);
+      clone.classList.add("clone-bubble");
+      clone.style.width = rect.width + "px";
+      clone.style.height = rect.height + "px";
+      clone.style.left = (rect.left - containerRect.left) + "px";
+      clone.style.top = (rect.top - containerRect.top) + "px";
+      clone.style.transform = "translate(0, 0)"; // initial no movement
+      matchContainer.appendChild(clone);
+      return clone;
+    }
+
+    function animateToMatched(cloneLeft, cloneRight) {
+      // We'll create a .matched-pair container that eventually holds the final mini-bubbles
+      const pairDiv = document.createElement("div");
+      pairDiv.className = "matched-pair";
+      matchedSection.appendChild(pairDiv);
+
+      // We want to animate both clones to pairDiv’s center area
+      // 1) get pairDiv’s bounding rect (after it’s in DOM)
+      // 2) place them side by side inside pairDiv
+      // The simplest approach is to place them at the pairDiv’s position.
+
+      requestAnimationFrame(() => {
+        // Now pairDiv has a layout, let's get the center
+        const pairRect = pairDiv.getBoundingClientRect();
+        // We'll offset them so left clone goes to left half, right clone to right half
+        const centerX = pairRect.left + (pairRect.width / 2);
+        const centerY = pairRect.top + (pairRect.height / 2);
+
+        // Move left bubble slightly left, right bubble slightly right
+        cloneLeft.style.transform = `translate(${centerX - cloneLeft.offsetWidth - parseFloat(cloneLeft.style.left)}px, 
+                                                ${centerY - cloneLeft.offsetHeight/2 - parseFloat(cloneLeft.style.top)}px)`;
+        cloneRight.style.transform = `translate(${centerX - parseFloat(cloneRight.style.left)}px,
+                                                 ${centerY - cloneRight.offsetHeight/2 - parseFloat(cloneRight.style.top)}px)`;
+
+        // After transition, remove clones + create final mini-bubbles
+        setTimeout(() => {
+          cloneLeft.remove();
+          cloneRight.remove();
+          // add the final pair’s mini-bubbles
+          createFinalPair(pairDiv, cloneLeft, cloneRight);
+        }, 800);
+      });
+    }
+
+    // Actually build the mini-bubble DOM in the matched pair container
+    function createFinalPair(pairDiv, leftClone, rightClone) {
+      // left mini
+      const leftMini = document.createElement("div");
+      leftMini.className = "mini-bubble";
+      leftMini.innerHTML = leftClone.innerHTML;
+
+      // right mini
+      const rightMini = document.createElement("div");
+      rightMini.className = "mini-bubble";
+      rightMini.innerHTML = rightClone.innerHTML;
+
+      pairDiv.appendChild(leftMini);
+      pairDiv.appendChild(rightMini);
+    }
+
+    /****************************************************
+     * 5) CHECK ANSWERS
+     ****************************************************/
+    checkAnswersBtn.addEventListener("click", () => {
+      // We have matchedPairs array => each object { leftId, rightId }
+      // Compare leftId === rightId => correct or not
+      // matchedSection has .matched-pair children => each has 2 .mini-bubble
+      // But simpler: We can loop over matchedPairs
+
+      const totalPairs = pairs.length;
+      let correctCount = 0;
+
+      // For the final display, we also highlight correct vs incorrect in matchedSection
+      const matchedPairDivs = matchedSection.querySelectorAll(".matched-pair");
+      matchedPairDivs.forEach((pairDiv, index) => {
+        const pairData = matchedPairs[index]; // same order they were pushed
+        if (pairData.leftId === pairData.rightId) {
+          correctCount++;
+          pairDiv.classList.add("correct");
+        } else {
+          pairDiv.classList.add("incorrect");
+        }
+      });
+
+      alert(`You matched ${correctCount} out of ${totalPairs} careers!`);
+    });
+
+    /****************************************************
+     * 6) SHUFFLE UTILITY
+     ****************************************************/
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+  </script>
+</body>
+</html>

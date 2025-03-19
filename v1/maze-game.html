@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Maze Explorer - KidzCareerz</title>
+  <!-- (Optional) Import the Fredoka One font for consistency: -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fef9e7;
+      font-family: "Fredoka One", cursive, sans-serif;
+      text-align: center;
+    }
+    h1 {
+      color: #ff6699;
+      margin-top: 20px;
+      font-size: 2em;
+    }
+    #game-container {
+      margin: 20px auto;
+      position: relative;
+      width: 600px; /* container for the canvas + text bubble */
+    }
+    #mazeCanvas {
+      background: #fff;
+      border: 4px solid #333;
+      border-radius: 10px;
+      display: block;
+      margin: 0 auto;
+    }
+    /* Speech bubble for career info */
+    #speechBubble {
+      display: none;
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 400px;
+      padding: 15px;
+      background: #ffda79;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      text-align: left;
+      color: #333;
+    }
+    /* “Victory” overlay */
+    #victoryOverlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 2em;
+      padding-top: 100px;
+      border-radius: 10px;
+    }
+    #victoryOverlay p {
+      background-color: #ff6699;
+      display: inline-block;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 80%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Maze Explorer</h1>
+  <div id="game-container">
+    <canvas id="mazeCanvas" width="600" height="400"></canvas>
+
+    <!-- Speech bubble for career info -->
+    <div id="speechBubble"></div>
+
+    <!-- Victory overlay -->
+    <div id="victoryOverlay">
+      <p>Congratulations! You escaped the maze and learned about new careers!</p>
+    </div>
+  </div>
+
+  <script>
+    /******************************************************
+     * 1) SETUP
+     ******************************************************/
+    const canvas = document.getElementById("mazeCanvas");
+    const ctx = canvas.getContext("2d");
+  
+    const speechBubble = document.getElementById("speechBubble");
+    const victoryOverlay = document.getElementById("victoryOverlay");
+  
+    const TILE_SIZE = 40; // each cell is 40x40 pixels
+    const ROWS = canvas.height / TILE_SIZE; // 10
+    const COLS = canvas.width / TILE_SIZE;  // 15
+  
+    // Maze layout: 1 = wall, 0 = path, 9 = exit, 2..8 = collectible career items
+    const mazeMap = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,2,0,3,0,0,0,0,0,4,0,5,1],
+      [1,0,1,1,1,0,1,1,0,1,1,0,1,0,1],
+      [1,0,0,0,1,0,1,1,0,1,0,0,0,0,1],
+      [1,6,1,0,1,0,0,0,0,1,1,0,1,0,1],
+      [1,0,1,0,1,1,1,1,0,0,1,0,1,0,1],
+      [1,0,1,0,7,0,0,0,8,0,1,0,1,0,1],
+      [1,0,0,0,1,1,1,1,1,1,1,0,1,9,1],
+      [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+  
+    let playerRow = 1, playerCol = 1; // Start position
+  
+    // Define career items (object collectibles)
+    const careerItems = {
+      2: { name: "Doctor", icon: "https://cdn-icons-png.flaticon.com/512/3343/3343270.png", info: "Doctors help people stay healthy and care for them when they're sick." },
+      3: { name: "Teacher", icon: "https://cdn-icons-png.flaticon.com/512/2150/2150423.png", info: "Teachers help students learn new subjects and skills in school." },
+      4: { name: "Police Officer", icon: "https://cdn-icons-png.flaticon.com/512/2440/2440313.png", info: "Police officers keep people safe and protect communities." },
+      5: { name: "Chef", icon: "https://cdn-icons-png.flaticon.com/512/1471/1471262.png", info: "Chefs cook delicious meals and invent new recipes." },
+      6: { name: "Artist", icon: "https://cdn-icons-png.flaticon.com/512/3132/3132089.png", info: "Artists create paintings, drawings, or sculptures to share ideas and beauty." },
+      7: { name: "Athlete", icon: "https://cdn-icons-png.flaticon.com/512/599/599452.png", info: "Athletes train and compete in sports, staying fit and working with teams." },
+      8: { name: "Astronaut", icon: "https://cdn-icons-png.flaticon.com/512/3075/3075934.png", info: "Astronauts travel to space to explore planets and conduct experiments." }
+    };
+  
+    /******************************************************
+     * 2) DRAW MAZE, OBJECTS, & PLAYER
+     ******************************************************/
+    function drawMaze() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = mazeMap[r][c];
+  
+          if (cell === 1) {
+            ctx.fillStyle = "#333";
+            ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          } else if (cell === 9) {
+            ctx.fillStyle = "#90EE90"; // Exit (light green)
+            ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          } else {
+            ctx.fillStyle = "#fef9e7"; // Open path
+            ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  
+            // If the cell is a career item, draw the object icon
+            if (careerItems[cell]) {
+              let img = new Image();
+              img.src = careerItems[cell].icon;
+              img.onload = function () {
+                ctx.drawImage(img, c * TILE_SIZE + 5, r * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10);
+              };
+            }
+          }
+        }
+      }
+  
+      drawPlayer();
+    }
+  
+    function drawPlayer() {
+      const playerX = playerCol * TILE_SIZE + TILE_SIZE / 2;
+      const playerY = playerRow * TILE_SIZE + TILE_SIZE / 2;
+      ctx.fillStyle = "#ff6699";
+      ctx.beginPath();
+      ctx.arc(playerX, playerY, TILE_SIZE / 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  
+    drawMaze();
+  
+    /******************************************************
+     * 3) PLAYER MOVEMENT & COLLISIONS
+     ******************************************************/
+    document.addEventListener("keydown", handleKeyDown);
+  
+    function handleKeyDown(e) {
+      let nextRow = playerRow;
+      let nextCol = playerCol;
+  
+      if (e.key === "ArrowUp") nextRow--;
+      else if (e.key === "ArrowDown") nextRow++;
+      else if (e.key === "ArrowLeft") nextCol--;
+      else if (e.key === "ArrowRight") nextCol++;
+      else return;
+  
+      if (!isWall(nextRow, nextCol)) {
+        playerRow = nextRow;
+        playerCol = nextCol;
+        checkTile(nextRow, nextCol);
+        drawMaze();
+      }
+    }
+  
+    function isWall(r, c) {
+      return r < 0 || r >= ROWS || c < 0 || c >= COLS || mazeMap[r][c] === 1;
+    }
+  
+    /******************************************************
+     * 4) CHECK TILE CONTENT:
+     *    - If an object is collected, show info & remove it
+     *    - If player reaches exit, show victory screen
+     ******************************************************/
+    function checkTile(r, c) {
+      const cellVal = mazeMap[r][c];
+  
+      if (careerItems[cellVal]) {
+        showCareerInfo(careerItems[cellVal]);
+        mazeMap[r][c] = 0; // Remove item after collection
+      } else if (cellVal === 9) {
+        showVictory();
+      }
+    }
+  
+    function showCareerInfo(item) {
+    speechBubble.style.display = "block";
+    speechBubble.innerHTML = `
+        <div style="display:flex; align-items:center;">
+        <img src="${item.icon}" width="40" height="40" style="margin-right: 10px;">
+        <strong>${item.name}</strong>
+        </div>
+        <p>${item.info}</p>
+    `;
+
+    // Hide speech bubble when clicking anywhere on the screen
+    document.addEventListener("click", hideSpeechBubble);
+    }
+
+    function hideSpeechBubble() {
+    speechBubble.style.display = "none";
+    document.removeEventListener("click", hideSpeechBubble); // Remove event listener after hiding
+    }
+
+  
+    function showVictory() {
+      victoryOverlay.style.display = "block";
+      document.removeEventListener("keydown", handleKeyDown);
+    }
+  </script>
+  
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Picture Pick - KidzCareerz</title>
+   <!-- Import Fredoka One for Consistent UI -->
+  <!-- Import Fredoka font -->
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Base styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #fef9e7; /* same as homepage */
+      font-family: 'Fredoka', sans-serif;
+      text-align: center;
+      transition: background-color 0.5s ease;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-bottom: 40px;
+    }
+
+    h1 {
+      margin-top: 20px;
+      color: #ff6699;
+      font-size: 2.5em;
+      transition: color 0.5s ease;
+    }
+
+    /* Container for each question */
+    .question-container {
+      background-color: #ffffff;
+      width: 90%;
+      max-width: 800px;
+      margin-top: 40px;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    .question-container h2 {
+      color: #ff6699;
+      font-size: 1.8em;
+      margin-bottom: 20px;
+    }
+
+    /* Container for the two picture choices */
+    .picture-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap; /* wrap on smaller screens */
+    }
+
+    .picture-choice {
+      width: 250px;
+      margin: 15px;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 15px;
+      background-color: #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    .picture-choice:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .picture-choice img {
+      width: 120px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+
+    .picture-choice p {
+      font-size: 1.2em;
+      color: #333;
+    }
+
+    /* End Screen */
+    #end-screen {
+      display: none;
+      width: 90%;
+      max-width: 600px;
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    #end-screen h2 {
+      color: #ff6699;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    #results {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    #results li {
+      background-color: #fff8dc;
+      color: #333;
+      border: 2px solid #ffd700;
+      border-radius: 8px;
+      margin: 10px auto;
+      padding: 10px;
+      max-width: 300px;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Picture Pick</h1>
+
+  <!-- Question Container -->
+  <div class="question-container">
+    <h2 id="questionText">Which image do you like more?</h2>
+    <div class="picture-container" id="pictureContainer">
+      <!-- Two pictures go here dynamically -->
+    </div>
+  </div>
+
+  <!-- End Screen (hidden initially) -->
+  <div id="end-screen">
+    <h2>Your Top 3 Career Matches:</h2>
+    <ul id="results"></ul>
+  </div>
+
+  <script>
+    /*******************************************************
+     * 10 CAREERS (same set as other KidzCareerz games)
+     *******************************************************/
+    const careers = [
+      { name: "Engineer", score: 0 },
+      { name: "Doctor", score: 0 },
+      { name: "Artist", score: 0 },
+      { name: "Teacher", score: 0 },
+      { name: "Police Officer", score: 0 },
+      { name: "Chef", score: 0 },
+      { name: "Veterinarian", score: 0 },
+      { name: "Musician", score: 0 },
+      { name: "Athlete", score: 0 },
+      { name: "Astronaut", score: 0 }
+    ];
+
+    /*******************************************************
+     * PICTURE QUESTIONS:
+     * Each question has:
+     * - leftImg, leftAlt, leftScores
+     * - rightImg, rightAlt, rightScores
+     *******************************************************/
+    const questions = [
+      {
+        leftImg: "https://cdn-icons-png.flaticon.com/512/4216/4216260.png",
+        leftAlt: "Engineer at work",
+        leftScores: {
+          "Engineer": 10, "Astronaut": 8, "Athlete": 4, "Doctor": 3, "Chef": 2,
+          "Police Officer": 3, "Artist": 2, "Teacher": 3, "Musician": 1, "Veterinarian": 2
+        },
+        rightImg: "https://cdn-icons-png.flaticon.com/512/3062/3062634.png",
+        rightAlt: "Chef cooking",
+        rightScores: {
+          "Chef": 10, "Teacher": 5, "Engineer": 4, "Doctor": 3, "Artist": 3,
+          "Veterinarian": 2, "Athlete": 2, "Astronaut": 2, "Musician": 1, "Police Officer": 2
+        }
+      },
+      {
+        leftImg: "https://cdn-icons-png.flaticon.com/512/4567/4567532.png",
+        leftAlt: "Doctor with stethoscope",
+        leftScores: {
+          "Doctor": 10, "Veterinarian": 8, "Teacher": 4, "Engineer": 3, "Astronaut": 3,
+          "Athlete": 3, "Police Officer": 3, "Chef": 2, "Artist": 2, "Musician": 1
+        },
+        rightImg: "https://cdn-icons-png.flaticon.com/512/983/983612.png",
+        rightAlt: "Police Officer",
+        rightScores: {
+          "Police Officer": 10, "Athlete": 5, "Teacher": 4, "Engineer": 3, "Artist": 2,
+          "Doctor": 2, "Chef": 2, "Musician": 2, "Veterinarian": 2, "Astronaut": 3
+        }
+      },
+      {
+        leftImg: "https://cdn-icons-png.flaticon.com/512/1055/1055681.png",
+        leftAlt: "Artist painting",
+        leftScores: {
+          "Artist": 10, "Musician": 7, "Teacher": 5, "Engineer": 3, "Doctor": 2,
+          "Chef": 2, "Veterinarian": 2, "Police Officer": 2, "Athlete": 2, "Astronaut": 3
+        },
+        rightImg: "https://cdn-icons-png.flaticon.com/512/6398/6398303.png",
+        rightAlt: "Musician performing",
+        rightScores: {
+          "Musician": 10, "Artist": 7, "Teacher": 4, "Engineer": 3, "Doctor": 2,
+          "Chef": 2, "Veterinarian": 2, "Police Officer": 2, "Athlete": 3, "Astronaut": 3
+        }
+      },
+      {
+        leftImg: "https://cdn-icons-png.flaticon.com/512/4992/4992615.png",
+        leftAlt: "Athlete playing soccer",
+        leftScores: {
+          "Athlete": 10, "Police Officer": 5, "Engineer": 4, "Astronaut": 3, "Doctor": 3,
+          "Teacher": 3, "Chef": 2, "Artist": 2, "Musician": 1, "Veterinarian": 2
+        },
+        rightImg: "https://cdn-icons-png.flaticon.com/512/1470/1470990.png",
+        rightAlt: "Astronaut floating in space",
+        rightScores: {
+          "Astronaut": 10, "Engineer": 7, "Athlete": 4, "Doctor": 3, "Teacher": 3,
+          "Chef": 2, "Artist": 2, "Police Officer": 3, "Musician": 1, "Veterinarian": 2
+        }
+      },
+      {
+        leftImg: "https://cdn-icons-png.flaticon.com/512/3050/3050614.png",
+        leftAlt: "Veterinarian with animals",
+        leftScores: {
+          "Veterinarian": 10, "Doctor": 6, "Teacher": 4, "Police Officer": 3, "Engineer": 3,
+          "Chef": 3, "Astronaut": 2, "Artist": 2, "Musician": 1, "Athlete": 3
+        },
+        rightImg: "https://cdn-icons-png.flaticon.com/512/184/184657.png",
+        rightAlt: "Teacher at a chalkboard",
+        rightScores: {
+          "Teacher": 10, "Veterinarian": 6, "Doctor": 4, "Astronaut": 3, "Police Officer": 3,
+          "Engineer": 3, "Chef": 2, "Artist": 2, "Musician": 1, "Athlete": 3
+        }
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+
+    // DOM references
+    const questionTextEl = document.getElementById("questionText");
+    const pictureContainerEl = document.getElementById("pictureContainer");
+    const endScreenEl = document.getElementById("end-screen");
+    const resultsEl = document.getElementById("results");
+
+    // Pastel backgrounds array
+    const pastelBackgrounds = [
+      "#ffe4e1", // pink
+      "#fff2cc", // pale yellow
+      "#d9f6f0", // teal
+      "#fde4cf", // peach
+      "#e7f0c3", // light lime
+      "#fcd5ce", // coral
+      "#cde6f5"  // pastel blue
+    ];
+
+    // On load, show the first question
+    showQuestion(currentQuestionIndex);
+
+    // Show question method
+    function showQuestion(index) {
+      if (index < questions.length) {
+        const q = questions[index];
+
+        // Clear old contents
+        pictureContainerEl.innerHTML = "";
+
+        // Left choice
+        const leftDiv = document.createElement("div");
+        leftDiv.className = "picture-choice";
+        leftDiv.innerHTML = `
+          <img src="${q.leftImg}" alt="${q.leftAlt}" />
+          <p>${q.leftAlt}</p>
+        `;
+        // On click -> add leftScores
+        leftDiv.addEventListener("click", () => handleChoice("left"));
+
+        // Right choice
+        const rightDiv = document.createElement("div");
+        rightDiv.className = "picture-choice";
+        rightDiv.innerHTML = `
+          <img src="${q.rightImg}" alt="${q.rightAlt}" />
+          <p>${q.rightAlt}</p>
+        `;
+        // On click -> add rightScores
+        rightDiv.addEventListener("click", () => handleChoice("right"));
+
+        // Append to container
+        pictureContainerEl.appendChild(leftDiv);
+        pictureContainerEl.appendChild(rightDiv);
+
+      } else {
+        // No more questions, show results
+        showEndScreen();
+      }
+    }
+
+    function handleChoice(side) {
+      const currentQ = questions[currentQuestionIndex];
+      if (side === "left") {
+        updateScores(currentQ.leftScores);
+      } else {
+        updateScores(currentQ.rightScores);
+      }
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        randomizeColors();
+        showQuestion(currentQuestionIndex);
+      } else {
+        showEndScreen();
+      }
+    }
+
+    // Add points to careers
+    function updateScores(scoreMap) {
+      careers.forEach(career => {
+        if (scoreMap[career.name] !== undefined) {
+          career.score += scoreMap[career.name];
+        }
+      });
+    }
+
+    // Random background color
+    function randomizeColors() {
+      const randomColor = pastelBackgrounds[Math.floor(Math.random() * pastelBackgrounds.length)];
+      document.body.style.backgroundColor = randomColor;
+    }
+
+    // Show end screen
+    function showEndScreen() {
+      document.querySelector(".question-container").style.display = "none";
+      endScreenEl.style.display = "block";
+
+      // Sort by descending score
+      careers.sort((a, b) => b.score - a.score);
+      const top3 = careers.slice(0, 3);
+
+      // Display results
+      resultsEl.innerHTML = "";
+      top3.forEach(career => {
+        const li = document.createElement("li");
+        li.textContent = `${career.name} (Score: ${career.score})`;
+        resultsEl.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>

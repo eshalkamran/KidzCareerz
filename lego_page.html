@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Do You Like Building Legos?</title>
+  <style>
+    body {
+      background-color: #ffd1dc; /* a soft pink background */
+      font-family: "Comic Sans MS", "Arial", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ff007f; /* bright magenta text */
+      margin-top: 30px;
+    }
+
+    .images-container {
+      margin: 20px auto;
+      width: 80%;
+      position: relative;
+      /* This container helps keep images nicely spaced */
+    }
+
+    .left-image {
+      float: left;
+      width: 400px;  /* adjust if needed */
+      margin-right: 20px;
+      margin-bottom: 20px;
+      border: 5px solid #ff7f50; /* coral border */
+      border-radius: 10px;
+    }
+
+    .right-image {
+      float: right;
+      width: 320px; /* adjust if needed */
+      margin-left: 20px;
+      margin-bottom: 20px;
+      border: 5px solid #ff7f50; /* coral border */
+      border-radius: 10px;
+    }
+
+    .buttons {
+      text-align: center;
+      clear: both; /* ensures buttons appear below the images */
+      margin: 30px 0;
+    }
+
+    .buttons button {
+      font-size: 1.2em;
+      font-weight: bold;
+      background-color: #ffe135; /* a banana yellow */
+      border: 2px solid #ffa500; /* an orange border */
+      border-radius: 8px;
+      padding: 10px 20px;
+      margin: 0 10px;
+      cursor: pointer;
+    }
+
+    .buttons button:hover {
+      background-color: #ffa500; /* orange on hover */
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Do you like solving puzzles?</h1>
+
+  <div class="images-container">
+    <!-- Make sure these filenames match your actual images -->
+    <img src="images.jpeg" alt="Left Lego Image" class="left-image" />
+    <img src="s-l1200.jpg" alt="Right Lego Image" class="right-image" />
+  </div>
+
+  <div class="buttons">
+    <button onclick="alert('Awesome! Puzzles are so fun!')">Yes</button>
+    <button onclick="alert('That’s okay! Maybe you just haven’t found the right puzzle yet!')">No</button>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Yay or Nay? - KidzCareerz Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Base styling */
+    body {
+      background-color: #ffe4e1; /* Light pastel to start */
+      font-family: 'Fredoka', cursive;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.5s ease;
+    }
+
+    h1 {
+      margin-top: 20px;
+      color: #ff6699;
+      font-size: 2.2em;
+      transition: color 0.5s ease;
+    }
+
+    /* Center container for question */
+    .question-container {
+      background-color: #ffffff;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+    .question-container h2 {
+      color: #ff6699;
+      margin-bottom: 20px;
+    }
+
+    /* Buttons */
+    .buttons {
+      margin-top: 20px;
+    }
+    .buttons button {
+      font-size: 1.2em;
+      font-weight: bold;
+      padding: 15px 25px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+    /* Yes Button */
+    #yesBtn {
+      background-color: #ffda79; /* pale yellow */
+      color: #333;
+    }
+    /* No Button */
+    #noBtn {
+      background-color: #8ccfff; /* soft blue */
+      color: #fff;
+    }
+    /* Hover effect */
+    .buttons button:hover {
+      transform: scale(1.05);
+    }
+
+    /* End Screen */
+    #end-screen {
+      display: none;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    #end-screen h2 {
+      color: #ff6699;
+      margin-bottom: 20px;
+    }
+    #results {
+      list-style: none;
+      padding: 0;
+    }
+    #results li {
+      background-color: #fff8dc;
+      color: #333;
+      border: 2px solid #ffd700;
+      border-radius: 8px;
+      margin: 10px auto;
+      padding: 10px;
+      max-width: 300px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Yay or Nay? Quiz</h1>
+
+  <div class="question-container">
+    <h2 id="questionText">Loading question...</h2>
+  </div>
+
+  <div class="buttons">
+    <button id="yesBtn">Yes</button>
+    <button id="noBtn">No</button>
+  </div>
+
+  <div id="end-screen">
+    <h2>Your Top 3 Career Matches:</h2>
+    <ul id="results"></ul>
+  </div>
+
+  <script>
+    /*******************************************************
+     * 10 CAREERS
+     *******************************************************/
+    const careers = [
+      { name: "Engineer", score: 0 },
+      { name: "Doctor", score: 0 },
+      { name: "Artist", score: 0 },
+      { name: "Teacher", score: 0 },
+      { name: "Police Officer", score: 0 },
+      { name: "Chef", score: 0 },
+      { name: "Veterinarian", score: 0 },
+      { name: "Musician", score: 0 },
+      { name: "Athlete", score: 0 },
+      { name: "Astronaut", score: 0 }
+    ];
+
+    /*******************************************************
+     * 20 QUESTIONS, each with unique rank-based scores
+     *******************************************************/
+    const questions = [
+      // Q1
+      {
+        text: "Do you enjoy building things with Legos or blocks?",
+        scoresIfYes: {
+          "Engineer": 10, "Astronaut": 9, "Athlete": 8, "Teacher": 7,
+          "Artist": 6, "Chef": 5, "Doctor": 4, "Police Officer": 3,
+          "Veterinarian": 2, "Musician": 1
+        }
+      },
+      // Q2
+      {
+        text: "Do you like helping people when they are sick?",
+        scoresIfYes: {
+          "Doctor": 10, "Veterinarian": 9, "Teacher": 8, "Astronaut": 7,
+          "Chef": 6, "Athlete": 5, "Engineer": 4, "Police Officer": 3,
+          "Artist": 2, "Musician": 1
+        }
+      },
+      // Q3
+      {
+        text: "Do you like drawing, coloring, or painting?",
+        scoresIfYes: {
+          "Artist": 10, "Musician": 9, "Teacher": 8, "Astronaut": 7,
+          "Chef": 6, "Engineer": 5, "Veterinarian": 4, "Athlete": 3,
+          "Doctor": 2, "Police Officer": 1
+        }
+      },
+      // Q4
+      {
+        text: "Would you enjoy teaching a younger sibling or friend something new?",
+        scoresIfYes: {
+          "Teacher": 10, "Doctor": 9, "Veterinarian": 8, "Astronaut": 7,
+          "Engineer": 6, "Police Officer": 5, "Artist": 4, "Chef": 3,
+          "Musician": 2, "Athlete": 1
+        }
+      },
+      // Q5
+      {
+        text: "Do you like solving puzzles or riddles?",
+        scoresIfYes: {
+          "Engineer": 10, "Astronaut": 9, "Doctor": 8, "Teacher": 7,
+          "Veterinarian": 6, "Artist": 5, "Athlete": 4, "Police Officer": 3,
+          "Musician": 2, "Chef": 1
+        }
+      },
+      // Q6
+      {
+        text: "Do you like cooking or helping in the kitchen?",
+        scoresIfYes: {
+          "Chef": 10, "Teacher": 9, "Engineer": 8, "Doctor": 7,
+          "Artist": 6, "Veterinarian": 5, "Astronaut": 4, "Police Officer": 3,
+          "Musician": 2, "Athlete": 1
+        }
+      },
+      // Q7
+      {
+        text: "Do you enjoy playing with animals and taking care of pets?",
+        scoresIfYes: {
+          "Veterinarian": 10, "Teacher": 9, "Doctor": 8, "Chef": 7,
+          "Engineer": 6, "Athlete": 5, "Astronaut": 4, "Artist": 3,
+          "Police Officer": 2, "Musician": 1
+        }
+      },
+      // Q8
+      {
+        text: "Do you like listening to or making music?",
+        scoresIfYes: {
+          "Musician": 10, "Artist": 9, "Teacher": 8, "Chef": 7,
+          "Engineer": 6, "Veterinarian": 5, "Athlete": 4, "Astronaut": 3,
+          "Doctor": 2, "Police Officer": 1
+        }
+      },
+      // Q9
+      {
+        text: "Do you like running, jumping, or playing sports?",
+        scoresIfYes: {
+          "Athlete": 10, "Astronaut": 9, "Police Officer": 8, "Engineer": 7,
+          "Teacher": 6, "Chef": 5, "Musician": 4, "Doctor": 3,
+          "Artist": 2, "Veterinarian": 1
+        }
+      },
+      // Q10
+      {
+        text: "Are you curious about space, planets, or astronauts?",
+        scoresIfYes: {
+          "Astronaut": 10, "Engineer": 9, "Athlete": 8, "Teacher": 7,
+          "Doctor": 6, "Police Officer": 5, "Chef": 4, "Veterinarian": 3,
+          "Musician": 2, "Artist": 1
+        }
+      },
+      // Q11
+      {
+        text: "Do you enjoy working with computers and technology?",
+        scoresIfYes: {
+          "Engineer": 10, "Astronaut": 9, "Doctor": 8, "Teacher": 7,
+          "Veterinarian": 6, "Athlete": 5, "Artist": 4, "Police Officer": 3,
+          "Chef": 2, "Musician": 1
+        }
+      },
+      // Q12
+      {
+        text: "Do you enjoy writing stories or making up new ideas?",
+        scoresIfYes: {
+          "Artist": 10, "Teacher": 9, "Musician": 8, "Engineer": 7,
+          "Doctor": 6, "Chef": 5, "Veterinarian": 4, "Astronaut": 3,
+          "Police Officer": 2, "Athlete": 1
+        }
+      },
+      // Q13
+      {
+        text: "Do you like helping people feel safe and protected?",
+        scoresIfYes: {
+          "Police Officer": 10, "Teacher": 9, "Astronaut": 8, "Doctor": 7,
+          "Veterinarian": 6, "Engineer": 5, "Athlete": 4, "Artist": 3,
+          "Chef": 2, "Musician": 1
+        }
+      },
+      // Q14
+      {
+        text: "Would you enjoy working in a team with others?",
+        scoresIfYes: {
+          "Teacher": 10, "Police Officer": 9, "Athlete": 8, "Veterinarian": 7,
+          "Astronaut": 6, "Doctor": 5, "Artist": 4, "Engineer": 3,
+          "Chef": 2, "Musician": 1
+        }
+      },
+      // Q15
+      {
+        text: "Do you like mixing ingredients and seeing how things change?",
+        scoresIfYes: {
+          "Chef": 10, "Engineer": 9, "Astronaut": 8, "Artist": 7,
+          "Teacher": 6, "Doctor": 5, "Police Officer": 4, "Veterinarian": 3,
+          "Musician": 2, "Athlete": 1
+        }
+      },
+      // Q16
+      {
+        text: "Do you like watching action-packed movies or pretending to be a superhero?",
+        scoresIfYes: {
+          "Police Officer": 10, "Athlete": 9, "Astronaut": 8, "Engineer": 7,
+          "Artist": 6, "Chef": 5, "Veterinarian": 4, "Musician": 3,
+          "Doctor": 2, "Teacher": 1
+        }
+      },
+      // Q17
+      {
+        text: "Do you like using tools or fixing broken things?",
+        scoresIfYes: {
+          "Engineer": 10, "Astronaut": 9, "Chef": 8, "Athlete": 7,
+          "Teacher": 6, "Police Officer": 5, "Doctor": 4, "Artist": 3,
+          "Veterinarian": 2, "Musician": 1
+        }
+      },
+      // Q18
+      {
+        text: "Do you enjoy taking care of plants or nature?",
+        scoresIfYes: {
+          "Veterinarian": 10, "Teacher": 9, "Engineer": 8, "Athlete": 7,
+          "Doctor": 6, "Artist": 5, "Police Officer": 4, "Chef": 3,
+          "Astronaut": 2, "Musician": 1
+        }
+      },
+      // Q19
+      {
+        text: "Would you love to go to the moon someday?",
+        scoresIfYes: {
+          "Astronaut": 10, "Engineer": 9, "Teacher": 8, "Athlete": 7,
+          "Doctor": 6, "Artist": 5, "Police Officer": 4, "Musician": 3,
+          "Chef": 2, "Veterinarian": 1
+        }
+      },
+      // Q20
+      {
+        text: "Do you enjoy acting in plays or performing in front of people?",
+        scoresIfYes: {
+          "Musician": 10, "Artist": 9, "Teacher": 8, "Astronaut": 7,
+          "Police Officer": 6, "Chef": 5, "Engineer": 4, "Veterinarian": 3,
+          "Athlete": 2, "Doctor": 1
+        }
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+
+    // DOM references
+    const questionTextEl = document.getElementById("questionText");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const endScreenEl = document.getElementById("end-screen");
+    const resultsEl = document.getElementById("results");
+
+    // A set of pastel background colors for random changes
+    const pastelBackgrounds = [
+      "#ffe4e1", // pink-ish
+      "#fff2cc", // pale yellow
+      "#d9f6f0", // very light teal
+      "#fde4cf", // peach
+      "#e7f0c3", // light lime
+      "#fcd5ce", // pastel coral
+      "#cde6f5"  // light pastel blue
+    ];
+
+    // Update UI with the current question text
+    function showQuestion(index) {
+      if (index < questions.length) {
+        questionTextEl.textContent = questions[index].text;
+      } else {
+        // If we've answered all questions, show results
+        showEndScreen();
+      }
+    }
+
+    // Handle "Yes" or "No" answer
+    function handleAnswer(answer) {
+      if (currentQuestionIndex < questions.length) {
+        if (answer === "yes") {
+          // Add points to careers for "Yes"
+          const scoreMap = questions[currentQuestionIndex].scoresIfYes;
+          careers.forEach((career) => {
+            if (scoreMap[career.name] !== undefined) {
+              career.score += scoreMap[career.name];
+            }
+          });
+        }
+        // If "no," we add 0 points (do nothing)
+        currentQuestionIndex++;
+
+        // If more questions remain, show the next question
+        if (currentQuestionIndex < questions.length) {
+          randomizeColors();
+          showQuestion(currentQuestionIndex);
+        } else {
+          // If no more questions, show final results
+          showEndScreen();
+        }
+      }
+    }
+
+    // Show the final sorted results
+    function showEndScreen() {
+      questionTextEl.style.display = "none";
+      yesBtn.style.display = "none";
+      noBtn.style.display = "none";
+      document.querySelector(".question-container").style.display = "none";
+      document.querySelector(".buttons").style.display = "none";
+      endScreenEl.style.display = "block";
+
+      // Sort careers descending by score
+      careers.sort((a, b) => b.score - a.score);
+      const top3 = careers.slice(0, 3);
+
+      // Populate results
+      resultsEl.innerHTML = "";
+      top3.forEach((career) => {
+        const li = document.createElement("li");
+        li.textContent = `${career.name} (Score: ${career.score})`;
+        resultsEl.appendChild(li);
+      });
+    }
+
+    // Randomly change background color for a fun effect
+    function randomizeColors() {
+      const randomColor = pastelBackgrounds[Math.floor(Math.random() * pastelBackgrounds.length)];
+      document.body.style.backgroundColor = randomColor;
+    }
+
+    // Button click listeners
+    yesBtn.addEventListener("click", () => handleAnswer("yes"));
+    noBtn.addEventListener("click", () => handleAnswer("no"));
+
+    // Initialize with the first question
+    showQuestion(currentQuestionIndex);
+  </script>
+
+</body>
+</html>

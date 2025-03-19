@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to KidzCareerz</title>
+  <!-- Fredoka One Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Fredoka One", cursive;
+      background: #fef9e7; /* soft pastel background */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    /* Main content container */
+    .home-container {
+      max-width: 700px;
+    }
+
+    .home-container h1 {
+      font-size: 3em;
+      color: #ff6699;
+      margin-bottom: 10px;
+    }
+
+    .home-container h2 {
+      font-size: 2em;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .home-container p {
+      font-size: 1.2em;
+      line-height: 1.6;
+      color: #555;
+      margin-bottom: 30px;
+    }
+
+    /* Games container */
+    .games-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 50px;
+      margin-top: 20px;
+    }
+
+    .game-link {
+      text-decoration: none;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.3s;
+    }
+
+    .game-link img {
+      width: 160px; /* adjust size */
+      height: auto;
+      border-radius: 15px;
+      padding: 10px;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .game-link:hover {
+      transform: scale(1.08);
+    }
+
+    .game-link:hover img {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .game-link p {
+      margin-top: 10px;
+      font-size: 1.3em;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Home Page Content -->
+  <div class="home-container">
+    <h1>Welcome to KidzCareerz</h1>
+    <h2>Find Your Dream Career!</h2>
+    <p>Click on a game below to get started!</p>
+
+    <!-- Clickable Images for Each Game -->
+    <div class="games-container">
+
+      <!-- Yay or Nay -->
+      <a class="game-link" href="yay-or-nay.html">
+        <img 
+          src="https://cdn-icons-png.flaticon.com/512/809/809957.png" 
+          alt="Yay or Nay Game" 
+        />
+        <p>Yay or Nay?</p>
+      </a>
+
+      <!-- Picture Pick -->
+      <a class="game-link" href="picture-pick.html">
+        <img 
+          src="https://cdn-icons-png.flaticon.com/512/456/456041.png" 
+          alt="Picture Pick Game" 
+        />
+        <p>Picture Pick</p>
+      </a>
+
+      <!-- This or That -->
+      <a class="game-link" href="this-or-that.html">
+        <img 
+          src="https://cdn-icons-png.flaticon.com/512/809/809971.png" 
+          alt="This or That Game" 
+        />
+        <p>This or That</p>
+      </a>
+
+            
+      <!-- Word Scramble -->
+      <a class="game-link" href="word-scramble.html">
+        <img 
+          src="https://cdn-icons-png.flaticon.com/512/2313/2313474.png" 
+          alt="Word Scramble Game" 
+        />
+        <p>Word Scramble</p>
+      </a>
+
+      <!-- Maze Explorer -->
+      <a class="game-link" href="maze-game.html">
+        <img 
+          src="https://cdn-icons-png.flaticon.com/512/594/594637.png" 
+          alt="Maze Explorer Game" 
+        />
+        <p>Maze Explorer</p>
+      </a>
+
+      <!-- Career Matcher -->
+      <a class="game-link" href="matching-game.html">
+        <img 
+          src="https://cdn-icons-png.flaticon.com/512/2910/2910761.png" 
+          alt="Career Matcher Game" 
+        />
+        <p>Career Matcher</p>
+      </a>
+
+    </div>
+  </div>
+
+</body>
+</html>
